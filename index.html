@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Notebook — Open Spread</title>
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Mali:ital,wght@0,400;0,500;0,600;1,400&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --desk-bg: #2B211D;
+      --desk-grid: rgba(78, 54, 38, 0.045);
+      --toolbar-bg: #9A704F;
+      --border-subtle: rgba(78, 54, 38, 0.16);
+      --espresso: #2c221b;
+      --muted-ink: #7a6f66;
+      --accent-orange: #d96236;
+      --accent-amber: #e2a64b;
+      --paper-bg: #DBC4A5;
+      --paper-shadow: rgba(44, 34, 27, 0.22);
+      --line-blue: rgba(54, 94, 136, 0.48);
+      --margin-red: rgba(169, 72, 72, 0.62);
+      --ink-color: #153b75;
+      --font-hand: 'Mali', 'Patrick Hand', cursive;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--desk-bg);
+      background-image:
+        radial-gradient(var(--desk-grid) 1px, transparent 1px),
+        radial-gradient(circle at 50% 25%, #ffd787 0%, var(--desk-bg) 80%);
+      background-size: 20px 20px, 100% 100%;
+      color: var(--espresso);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ================= TOP TOOLBAR ================= */
+    .top-toolbar {
+      height: 64px;
+      background: var(--toolbar-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+      z-index: 50;
+      box-shadow: 0 2px 12px rgba(44, 34, 27, 0.06);
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 32px;
+      background: var(--border-subtle);
+      margin: 0 4px;
+    }
+
+    .tool-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 46px;
+      height: 48px;
+      padding: 4px 7px;
+      border-radius: 9px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--espresso);
+      cursor: pointer;
+      transition: all 0.14s ease;
+    }
+
+    .tool-btn:hover {
+      background: rgba(217, 98, 54, 0.09);
+      border-color: rgba(217, 98, 54, 0.22);
+    }
+
+    .tool-btn.active {
+      background: var(--espresso);
+      color: #fffaf0;
+      box-shadow: 0 3px 8px rgba(44, 34, 27, 0.22);
+    }
+
+    .tool-icon {
+      font-size: 16px;
+      line-height: 1.1;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tool-kbd {
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      opacity: 0.72;
+      margin-top: 2px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .tool-btn.active .tool-kbd {
+      opacity: 0.88;
+      color: #f6d594;
+    }
+
+    .ink-palette {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 6px;
+    }
+
+    .ink-dot {
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 0 1px rgba(44, 34, 27, 0.25);
+      cursor: pointer;
+      transition: transform 0.14s ease;
+    }
+
+    .ink-dot:hover {
+      transform: scale(1.16);
+    }
+
+    .ink-dot.active {
+      transform: scale(1.22);
+      box-shadow: 0 0 0 2px var(--accent-orange);
+    }
+
+    .nav-input-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-input-wrap {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 3px 8px;
+      height: 30px;
+      transition: border-color 0.15s;
+    }
+
+    .nav-input-wrap:focus-within {
+      border-color: var(--accent-orange);
+      box-shadow: 0 0 0 2px rgba(217, 98, 54, 0.14);
+    }
+
+    .nav-input-wrap input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 12.5px;
+      color: var(--espresso);
+      width: 115px;
+    }
+
+    .nav-input-wrap.page-jump input {
+      width: 78px;
+      text-align: center;
+    }
+
+    .search-match-badge {
+      font-size: 10px;
+      color: var(--accent-orange);
+      font-weight: 700;
+      margin-left: 4px;
+      white-space: nowrap;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      color: var(--muted-ink);
+      padding: 0 6px;
+    }
+
+    .save-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #90e19c;
+    }
+
+    .save-dot.saving {
+      background: #e06060;
+    }
+
+    /* ================= BOOK VIEWPORT & CENTERED SPREAD ================= */
+    .book-viewport {
+      flex: 1;
+      width: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 56px 14px;
+      position: relative;
+      scroll-behavior: smooth;
+    }
+
+    .book-viewport.is-zoomed {
+      align-items: flex-start;
+      padding-bottom: 42vh;
+    }
+
+    body.overview-mode .book-viewport {
+      display: none;
+    }
+
+    .zoom-stage {
+      position: relative;
+      display: block;
+      margin: 0 auto;
+      flex-shrink: 0;
+    }
+
+    .hand-turn-btn {
+      position: fixed;
+      top: 52%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 252, 245, 0.85);
+      backdrop-filter: blur(4px);
+      border: 1.5px solid var(--border-subtle);
+      box-shadow: 0 4px 14px rgba(44, 34, 27, 0.14);
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 40;
+      opacity: 0.78;
+      transition: transform 0.16s ease, background 0.16s ease, opacity 0.16s ease;
+    }
+
+    .hand-turn-btn:hover {
+      background: #ffffff;
+      opacity: 1;
+      transform: translateY(-50%) scale(1.1);
+      border-color: var(--accent-orange);
+    }
+
+    .hand-turn-btn.left {
+      left: 10px;
+    }
+
+    .hand-turn-btn.right {
+      right: 16px;
+    }
+
+    .hand-turn-btn.disabled {
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    .book-cover-frame {
+      background: linear-gradient(135deg, #4b382a 0%, #36271c 100%);
+      padding: 10px 10px 10px;
+      border-radius: 10px;
+      box-shadow:
+        0 18px 42px rgba(34, 24, 17, 0.28),
+        0 2px 6px rgba(34, 24, 17, 0.2);
+      display: inline-flex;
+      justify-content: center;
+      transform-origin: top left;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .book-spread {
+      display: flex;
+      background: var(--paper-bg);
+      border-radius: 5px;
+      position: relative;
+      box-shadow:
+        -4px 0 0 #e6decb,
+        -7px 0 0 #d8ceb8,
+        4px 0 0 #e6decb,
+        7px 0 0 #d8ceb8;
+    }
+
+    .book-spread::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 34px;
+      transform: translateX(-50%);
+      background: linear-gradient(
+        90deg,
+        rgba(44, 34, 27, 0) 0%,
+        rgba(44, 34, 27, 0.08) 38%,
+        rgba(44, 34, 27, 0.18) 50%,
+        rgba(44, 34, 27, 0.08) 62%,
+        rgba(44, 34, 27, 0) 100%
+      );
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .notebook-page {
+      position: relative;
+      width: 560px;
+      background-color: var(--paper-bg);
+      background-image: radial-gradient(rgba(180, 160, 125, 0.12) 1px, transparent 0);
+      background-size: 16px 16px;
+      padding: 14px 0 22px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .notebook-page.left-page {
+      border-radius: 5px 0 0 5px;
+      border-right: 1px solid rgba(44, 34, 27, 0.1);
+    }
+
+    .notebook-page.right-page {
+      border-radius: 0 5px 5px 0;
+    }
+
+    .notebook-page::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 46px;
+      width: 3px;
+      border-left: 1px solid var(--margin-red);
+      border-right: 1px solid rgba(214, 96, 96, 0.26);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .page-badge-num {
+      position: absolute;
+      bottom: 5px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--muted-ink);
+      opacity: 0.7;
+      pointer-events: none;
+      z-index: 6;
+    }
+
+    .left-page .page-badge-num {
+      left: 18px;
+    }
+
+    .right-page .page-badge-num {
+      right: 18px;
+    }
+
+    .page-header {
+      height: 40px;
+      border-bottom: 1.5px solid var(--line-blue);
+      padding: 4px 22px 4px 58px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 10px;
+      position: relative;
+      z-index: 4;
+    }
+
+    .page-header-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: var(--font-hand);
+      color: var(--ink-color);
+      font-size: 15px;
+      user-select: text;
+    }
+
+    .page-header-input::placeholder {
+      color: rgba(21, 59, 117, 0.28);
+      font-style: italic;
+    }
+
+    .page-title-input {
+      width: 64%;
+      font-weight: 600;
+    }
+
+    .page-date-input {
+      width: 34%;
+      text-align: right;
+      font-size: 13px;
+    }
+
+    .page-lines {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 4;
+    }
+
+    .paper-line:hover {
+      background-color: rgba(114, 154, 198, 0.05);
+    }
+
+    .paper-line.search-hit {
+      background-color: rgba(241, 210, 122, 0.55) !important;
+    }
+
+    .page-lines[contenteditable="true"] {
+      outline: none;
+      user-select: text;
+      cursor: text;
+    }
+
+    .page-lines ::selection {
+      background: rgba(217, 98, 54, 0.25);
+    }
+
+    .paper-line {
+      position: relative;
+      display: block;
+      height: 25px;
+      line-height: 23px;
+      border-bottom: 1px solid var(--line-blue);
+      padding: 2px 22px 0 58px;
+      white-space: pre;
+      overflow: hidden;
+      font-family: var(--font-hand);
+      font-size: 15.5px;
+      letter-spacing: 0.15px;
+      color: var(--ink-color);
+      caret-color: var(--ink-color);
+      cursor: text;
+      user-select: text;
+    }
+
+    .paper-line b,
+    .paper-line strong {
+      font-weight: 800;
+    }
+
+    .paper-line mark {
+      background: rgba(250, 204, 21, 0.48);
+      color: inherit;
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+
+    /* ================= HEADING LINE & CODE LINE ================= */
+    .paper-line.is-heading {
+      background-color: rgba(217, 98, 54, 0.06);
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 0.25px;
+      line-height: 22px;
+      color: var(--espresso);
+    }
+
+    .paper-line.is-code {
+      background-color: #181a1b;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 0;
+      margin: 0 18px 0 49px;
+      padding: 2px 12px 0 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13.5px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 23px;
+      color: #4ade80;
+      caret-color: #4ade80;
+    }
+
+    .paper-line.is-code.code-start {
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+    }
+
+    .paper-line.is-code.code-end {
+      border-bottom-left-radius: 5px;
+      border-bottom-right-radius: 5px;
+      border-bottom-color: #181a1b;
+    }
+
+    .paper-line.is-code:hover {
+      background-color: #1f2224;
+    }
+
+    .text-ruler {
+      font-family: var(--font-hand);
+      font-size: 15.5px;
+      letter-spacing: 0.15px;
+    }
+
+    /* ================= ALL-PAGES GRID OVERVIEW (CTRL + G) ================= */
+    .overview-viewport {
+      display: none;
+      flex: 1;
+      width: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 20px 28px 54px;
+      background: rgba(31, 24, 20, 0.88);
+    }
+
+    body.overview-mode .overview-viewport {
+      display: block;
+    }
+
+    .overview-grid {
+      width: 100%;
+      max-width: 1520px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1120px) {
+      .overview-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 780px) {
+      .overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .overview-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: #231b17;
+      border: 1.5px solid rgba(226, 166, 75, 0.36);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
+      transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .overview-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-amber);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    .overview-card.is-current-spread {
+      border-color: var(--accent-orange);
+      box-shadow: 0 0 0 2px rgba(217, 98, 54, 0.4), 0 10px 24px rgba(0, 0, 0, 0.36);
+    }
+
+    .overview-page-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 560 / 651;
+      overflow: hidden;
+      background: var(--paper-bg);
+    }
+
+    .overview-page-mini {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 560px;
+      height: 651px;
+      transform: scale(var(--ov-scale, 0.5));
+      transform-origin: top left;
+      will-change: transform;
+      pointer-events: none;
+      border-radius: 0;
+      border-right: none;
+    }
+
+    .overview-skeleton-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-hand);
+      font-size: 15px;
+      color: rgba(44, 34, 27, 0.36);
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 24px,
+        rgba(54, 94, 136, 0.16) 24px,
+        rgba(54, 94, 136, 0.16) 25px
+      );
+    }
+
+    .overview-mini-text {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 2px;
+      white-space: pre;
+      overflow: hidden;
+      font-family: var(--font-hand);
+      font-size: 15.5px;
+      letter-spacing: 0.15px;
+      color: var(--ink-color);
+    }
+
+    .paper-line.is-heading .overview-mini-text {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 0.25px;
+      color: var(--espresso);
+    }
+
+    .paper-line.is-code .overview-mini-text {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13.5px;
+      font-weight: 500;
+      letter-spacing: 0;
+      color: #4ade80;
+    }
+
+    .overview-card-footer {
+      height: 30px;
+      padding: 0 12px;
+      background: #231b17;
+      border-top: 1px solid rgba(226, 166, 75, 0.28);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #e9dcc7;
+    }
+
+    .overview-card-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      opacity: 0.85;
+    }
+
+    .overview-card-page-tag {
+      color: var(--accent-amber);
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+
+    /* ================= ZOOMED SINGLE-PAGE MODE (CTRL + Q) ================= */
+    .book-spread.zoomed-mode {
+      box-shadow: 0 12px 32px rgba(44, 34, 27, 0.2);
+    }
+
+    .book-spread.zoomed-mode::after {
+      display: none;
+    }
+
+    .book-spread.zoomed-mode.focus-left .right-page,
+    .book-spread.zoomed-mode.focus-right .left-page {
+      display: none;
+    }
+
+    .book-spread.zoomed-mode .notebook-page {
+      border-radius: 5px;
+      border-right: none;
+    }
+
+    /* ================= SVG VECTOR DRAWING LAYER ================= */
+    .page-svg-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 8;
+      pointer-events: none;
+      touch-action: none;
+    }
+
+    body.drawing-mode .page-svg-layer {
+      pointer-events: auto;
+      cursor: crosshair;
+    }
+
+    body.eraser-mode .page-svg-layer {
+      pointer-events: auto;
+      cursor: cell;
+    }
+
+    body.drawing-mode .page-lines,
+    body.drawing-mode .page-header,
+    body.drawing-mode .notebook-table-card,
+    body.eraser-mode .page-lines,
+    body.eraser-mode .page-header {
+      pointer-events: none;
+    }
+
+    .drawn-shape {
+      transition: filter 0.1s ease;
+    }
+
+    body.eraser-mode .drawn-shape:hover {
+      filter: drop-shadow(0 0 4px #d93829);
+      opacity: 0.45 !important;
+      cursor: pointer;
+    }
+
+    /* ================= PASTED IMAGES LAYER ON PAGE (CTRL + V) ================= */
+    .page-images-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9;
+    }
+
+    .pasted-image-card {
+      position: absolute;
+      pointer-events: auto;
+      border: 1.5px dashed transparent;
+      border-radius: 6px;
+      padding: 3px;
+      transition: border-color 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .pasted-image-card:hover {
+      border-color: rgba(21, 59, 117, 0.55);
+      box-shadow: 0 6px 18px rgba(44, 34, 27, 0.16);
+    }
+
+    body.drawing-mode .pasted-image-card {
+      pointer-events: none;
+    }
+
+    body.eraser-mode .pasted-image-card:hover {
+      outline: 2px solid #d93829;
+      opacity: 0.5;
+      cursor: pointer;
+    }
+
+    .pasted-image-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .pasted-image-card img:active {
+      cursor: grabbing;
+    }
+
+    .img-del-btn {
+      position: absolute;
+      top: -9px;
+      right: -9px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1px solid var(--border-subtle);
+      background: #fffdf8;
+      color: #b83227;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+      z-index: 2;
+    }
+
+    .pasted-image-card:hover .img-del-btn {
+      display: flex;
+    }
+
+    .img-resize-handle {
+      position: absolute;
+      right: -5px;
+      bottom: -5px;
+      width: 12px;
+      height: 12px;
+      background: var(--accent-orange);
+      border: 2px solid #ffffff;
+      border-radius: 3px;
+      cursor: nwse-resize;
+      display: none;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+      z-index: 2;
+    }
+
+    .pasted-image-card:hover .img-resize-handle {
+      display: block;
+    }
+
+    /* ================= EDITABLE TABLES ON PAGE ================= */
+    .page-tables-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .notebook-table-card {
+      position: absolute;
+      background: rgba(252, 249, 240, 0.95);
+      border: 1.5px solid var(--ink-color);
+      border-radius: 4px;
+      box-shadow: 0 4px 14px rgba(44, 34, 27, 0.14);
+      pointer-events: auto;
+      min-width: 210px;
+      max-width: calc(100% - 76px);
+    }
+
+    body.eraser-mode .notebook-table-card:hover {
+      outline: 2px solid #d93829;
+      opacity: 0.55;
+      cursor: pointer;
+    }
+
+    .table-drag-bar {
+      height: 20px;
+      background: rgba(21, 59, 117, 0.08);
+      border-bottom: 1px solid rgba(21, 59, 117, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 6px;
+      cursor: grab;
+      font-size: 10px;
+      color: var(--ink-color);
+    }
+
+    .table-mini-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .table-mini-btn {
+      border: none;
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--espresso);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .table-mini-btn:hover {
+      background: var(--accent-amber);
+    }
+
+    .notebook-table-card table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-hand);
+      font-size: 14.5px;
+      color: var(--ink-color);
+    }
+
+    .notebook-table-card td {
+      border: 1px solid rgba(21, 59, 117, 0.35);
+      padding: 4px 7px;
+      min-width: 64px;
+      outline: none;
+      user-select: text;
+    }
+
+    .notebook-table-card td:focus {
+      background: rgba(241, 210, 122, 0.25);
+    }
+
+    /* ================= FREE-FLOATING TEXT BOXES ON PAGE (CTRL + B) ================= */
+    .page-freetext-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 11;
+    }
+
+    .free-text-card {
+      position: absolute;
+      min-width: 84px;
+      pointer-events: auto;
+      border: 1px dashed transparent;
+      border-radius: 5px;
+      padding: 2px 6px 4px;
+      transition: border-color 0.14s ease, background 0.14s ease;
+    }
+
+    .free-text-card:hover,
+    .free-text-card:focus-within {
+      border-color: rgba(21, 59, 117, 0.45);
+      background: rgba(255, 253, 246, 0.72);
+    }
+
+    body.drawing-mode .free-text-card {
+      pointer-events: none;
+    }
+
+    body.eraser-mode .free-text-card:hover {
+      outline: 2px solid #d93829;
+      opacity: 0.5;
+      cursor: pointer;
+    }
+
+    .free-text-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 15px;
+      font-size: 9.5px;
+      color: var(--muted-ink);
+      cursor: grab;
+      opacity: 0;
+      transition: opacity 0.12s ease;
+    }
+
+    .free-text-card:hover .free-text-bar,
+    .free-text-card:focus-within .free-text-bar {
+      opacity: 1;
+    }
+
+    .free-text-del {
+      border: none;
+      background: transparent;
+      color: #b83227;
+      font-weight: 700;
+      font-size: 10px;
+      cursor: pointer;
+      padding: 0 3px;
+    }
+
+    .free-text-body {
+      outline: none;
+      font-family: var(--font-hand);
+      font-size: 16px;
+      line-height: 1.35;
+      color: var(--ink-color);
+      white-space: pre-wrap;
+      word-break: break-word;
+      user-select: text;
+      min-height: 22px;
+    }
+
+    .free-text-body:empty::before {
+      content: "Gõ chữ tự do...";
+      color: rgba(21, 59, 117, 0.32);
+      font-style: italic;
+    }
+
+    /* ================= FLOATING DRAWING PROPERTIES PANEL ================= */
+    .draw-style-panel {
+      position: fixed;
+      left: 20px;
+      bottom: 24px;
+      width: 204px;
+      background: rgba(255, 253, 248, 0.96);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 10px 28px rgba(44, 34, 27, 0.16);
+      z-index: 60;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .draw-style-panel.visible {
+      display: flex;
+    }
+
+    body.overview-mode .draw-style-panel {
+      display: none !important;
+    }
+
+    .panel-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted-ink);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .stroke-swatches {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .stroke-swatch {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .stroke-swatch.active {
+      outline: 2px solid var(--accent-orange);
+      outline-offset: 1px;
+    }
+
+    .size-btn-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+
+    .size-pill {
+      padding: 5px 0;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: #f5f1e8;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .size-pill.active {
+      background: var(--espresso);
+      color: #ffffff;
+      border-color: var(--espresso);
+    }
+
+    .opacity-slider {
+      width: 100%;
+      accent-color: var(--espresso);
+      cursor: pointer;
+    }
+
+    .panel-footer-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .panel-action-btn {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .panel-action-btn:hover {
+      background: #f2ece0;
+    }
+
+    /* ================= FREEHAND SKETCHPAD MODAL (ALT + V) ================= */
+    .sketchpad-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(24, 18, 15, 0.72);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 220;
+      padding: 18px;
+    }
+
+    .sketchpad-backdrop.open {
+      display: flex;
+    }
+
+    .sketchpad-modal {
+      width: min(1160px, 95vw);
+      height: min(760px, 91vh);
+      background: #fcf9f2;
+      border: 1.5px solid var(--espresso);
+      border-radius: 16px;
+      box-shadow: 0 28px 72px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: sketchPop 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes sketchPop {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .sketchpad-toolbar {
+      min-height: 54px;
+      padding: 8px 16px;
+      background: #f3ece0;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .sketch-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sketch-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border-subtle);
+      margin: 0 4px;
+    }
+
+    .sketch-tool-btn {
+      padding: 6px 10px;
+      border-radius: 7px;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      color: var(--espresso);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.12s ease;
+    }
+
+    .sketch-tool-btn:hover {
+      background: rgba(217, 98, 54, 0.1);
+      border-color: var(--accent-orange);
+    }
+
+    .sketch-tool-btn.active {
+      background: var(--espresso);
+      color: #fffaf0;
+      border-color: var(--espresso);
+    }
+
+    .sketch-color-dot {
+      width: 21px;
+      height: 21px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 0 1px rgba(44, 34, 27, 0.28);
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+
+    .sketch-color-dot:hover {
+      transform: scale(1.14);
+    }
+
+    .sketch-color-dot.active {
+      transform: scale(1.2);
+      box-shadow: 0 0 0 2px var(--accent-orange);
+    }
+
+    .sketch-size-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .sketch-size-btn.active {
+      background: var(--espresso);
+      color: #ffffff;
+      border-color: var(--espresso);
+    }
+
+    .sketch-import-btn {
+      padding: 7px 16px;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent-orange);
+      color: #ffffff;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(217, 98, 54, 0.3);
+      transition: filter 0.14s ease, transform 0.12s ease;
+    }
+
+    .sketch-import-btn:hover {
+      filter: brightness(0.94);
+    }
+
+    .sketchpad-canvas-wrap {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      background-color: #fffdf8;
+      background-image: radial-gradient(rgba(78, 54, 38, 0.14) 1px, transparent 1px);
+      background-size: 20px 20px;
+      overflow: hidden;
+    }
+
+    .sketchpad-canvas-wrap.show-grid {
+      background-image:
+        linear-gradient(to right, rgba(54, 94, 136, 0.14) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(54, 94, 136, 0.14) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    #freehandSketchCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .sketchpad-hint {
+      position: absolute;
+      bottom: 10px;
+      left: 16px;
+      font-size: 11.5px;
+      color: var(--muted-ink);
+      background: rgba(252, 249, 242, 0.9);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      pointer-events: none;
+    }
+
+    /* ================= BOTTOM-RIGHT PAGE INDICATOR ================= */
+    .bottom-status-bar {
+      position: fixed;
+      bottom: 10px;
+      right: 18px;
+      background: rgba(252, 249, 242, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--espresso);
+      box-shadow: 0 4px 12px rgba(44, 34, 27, 0.08);
+      z-index: 45;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ================= RIGHT-CLICK PAGE CONTEXT MENU ================= */
+    .context-menu {
+      position: fixed;
+      background: #fffdf8;
+      border: 1px solid var(--espresso);
+      border-radius: 10px;
+      padding: 6px;
+      min-width: 235px;
+      box-shadow: 0 12px 30px rgba(44, 34, 27, 0.24);
+      z-index: 120;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .context-menu.open {
+      display: flex;
+    }
+
+    .ctx-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      font-size: 12.5px;
+      color: var(--espresso);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .ctx-item:hover {
+      background: rgba(226, 166, 75, 0.25);
+    }
+
+    .ctx-item.danger:hover {
+      background: #d96236;
+      color: #ffffff;
+    }
+
+    .ctx-kbd {
+      font-size: 10.5px;
+      opacity: 0.68;
+      font-family: monospace;
+    }
+
+    /* ================= GUIDE MODAL (ALT + E) ================= */
+    .guide-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(34, 24, 17, 0.48);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .guide-backdrop.open {
+      display: flex;
+    }
+
+    .guide-modal {
+      background: #fcf9f2;
+      border: 1.5px solid var(--espresso);
+      border-radius: 14px;
+      width: min(680px, 92vw);
+      max-height: 86vh;
+      overflow-y: auto;
+      padding: 24px 28px;
+      box-shadow: 0 24px 60px rgba(34, 24, 17, 0.32);
+    }
+
+    .guide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .guide-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .btn-close-guide {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .guide-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .guide-card {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .guide-card h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--accent-orange);
+      margin-bottom: 8px;
+    }
+
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px dashed rgba(78, 54, 38, 0.12);
+      font-size: 12.5px;
+    }
+
+    .shortcut-row:last-child {
+      border-bottom: none;
+    }
+
+    .kbd-pill {
+      background: #f2ece0;
+      border: 1px solid rgba(78, 54, 38, 0.25);
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .guide-tips {
+      margin-top: 14px;
+      background: rgba(226, 166, 75, 0.16);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+
+    .text-ruler {
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      visibility: hidden;
+      white-space: pre;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-toolbar">
+    <div class="toolbar-group">
+      <button class="tool-btn" id="btnBackLibrary" title="Thoát về thư viện (Esc)">
+        <span class="tool-icon">←</span>
+        <span class="tool-kbd">esc</span>
+      </button>
+
+      <div class="toolbar-divider"></div>
+
+      <button class="tool-btn active" data-tool="text" title="Chế độ viết chữ (Ctrl + A)">
+        <span class="tool-icon">A</span>
+        <span class="tool-kbd">ctrl a</span>
+      </button>
+      <button class="tool-btn" data-tool="line" title="Vẽ đường thẳng (Ctrl + S)">
+        <span class="tool-icon">╱</span>
+        <span class="tool-kbd">ctrl s</span>
+      </button>
+      <button class="tool-btn" data-tool="oval" title="Vẽ hình Oval (Ctrl + O)">
+        <span class="tool-icon">○</span>
+        <span class="tool-kbd">ctrl o</span>
+      </button>
+      <button class="tool-btn" data-tool="rect" title="Vẽ hình chữ nhật (Ctrl + R)">
+        <span class="tool-icon">□</span>
+        <span class="tool-kbd">ctrl r</span>
+      </button>
+      <button class="tool-btn" data-tool="arrow" title="Vẽ mũi tên (Ctrl + D)">
+        <span class="tool-icon">↗</span>
+        <span class="tool-kbd">ctrl d</span>
+      </button>
+      <button class="tool-btn" data-tool="eraser" title="Tẩy nét vẽ / bảng / ảnh (Ctrl + F)">
+        <span class="tool-icon">⌫</span>
+        <span class="tool-kbd">ctrl f</span>
+      </button>
+      <button class="tool-btn" id="btnOpenSketchpad" title="Mở bảng vẽ tự do & chèn thành ảnh (Alt + V)">
+        <span class="tool-icon">✎</span>
+        <span class="tool-kbd">alt v</span>
+      </button>
+    </div>
+
+    <div class="toolbar-group">
+      <div class="ink-palette" title="Màu mực viết">
+        <div class="ink-dot active" data-ink="#153b75" style="background:#153b75;"></div>
+        <div class="ink-dot" data-ink="#1e1b18" style="background:#1e1b18;"></div>
+        <div class="ink-dot" data-ink="#b83227" style="background:#b83227;"></div>
+        <div class="ink-dot" data-ink="#2d5a27" style="background:#2d5a27;"></div>
+      </div>
+
+      <button class="tool-btn" id="btnSwitchFont" title="Change font">
+        <span class="tool-icon" style="font-family: 'Mali', cursive; font-size:15px;">font</span>
+      </button>
+
+      <div class="toolbar-divider"></div>
+
+      <button class="tool-btn" id="btnInsertTable" title="Chèn nhanh bảng biểu (Ctrl + T)">
+        <span class="tool-icon">⊞</span>
+        <span class="tool-kbd">ctrl t</span>
+      </button>
+      <button class="tool-btn" id="btnInsertFreeText" title="Thêm chữ tự do ở bất kỳ đâu (Ctrl + B)">
+        <span class="tool-icon">TEXT□</span>
+        <span class="tool-kbd">ctrl b</span>
+      </button>
+      <button class="tool-btn" id="btnInsertBullet" title="Thêm chấm tròn đầu dòng (Ctrl + P)">
+        <span class="tool-icon">•≡</span>
+        <span class="tool-kbd">ctrl p</span>
+      </button>
+      <button class="tool-btn" id="btnToggleHeading" title="Bật/tắt chế độ dòng Heading (Alt + 1)">
+        <span class="tool-icon">H</span>
+        <span class="tool-kbd">alt 1</span>
+      </button>
+      <button class="tool-btn" id="btnToggleCode" title="Bật/tắt chế độ dòng Code (Alt + 2)">
+        <span class="tool-icon">&lt;/&gt;</span>
+        <span class="tool-kbd">alt 2</span>
+      </button>
+      <button class="tool-btn" id="btnOverviewGrid" title="Xem toàn bộ trang (Ctrl + G)">
+        <span class="tool-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
+            <rect x="2" y="2" width="4.8" height="4.8" rx="1"/>
+            <rect x="9.2" y="2" width="4.8" height="4.8" rx="1"/>
+            <rect x="2" y="9.2" width="4.8" height="4.8" rx="1"/>
+            <rect x="9.2" y="9.2" width="4.8" height="4.8" rx="1"/>
+          </svg>
+        </span>
+        <span class="tool-kbd">ctrl g</span>
+      </button>
+    </div>
+
+    <div class="toolbar-group">
+      <div class="nav-input-box">
+        <div class="nav-input-wrap">
+          <input type="text" id="searchInput" placeholder="search..." />
+          <span class="search-match-badge" id="searchBadge"></span>
+        </div>
+        <span class="tool-kbd">alt t</span>
+      </div>
+
+      <div class="nav-input-box">
+        <div class="nav-input-wrap page-jump">
+          <input type="number" id="jumpPageInput" min="1" placeholder="open page" />
+        </div>
+        <span class="tool-kbd">alt o</span>
+      </div>
+    </div>
+
+    <div class="toolbar-group">
+      <button class="tool-btn" id="btnToggleZoom" title="Phóng to / Thu nhỏ 2 trang (Ctrl + Q)">
+        <span class="tool-icon" id="zoomIconLabel">⤢</span>
+        <span class="tool-kbd">ctrl q</span>
+      </button>
+
+      <div class="status-pill">
+        <span class="save-dot" id="saveDot"></span>
+      </div>
+
+      <button class="tool-btn" id="btnOpenGuide" title="Hướng dẫn & Phím tắt (Alt + E)">
+        <span class="tool-icon">⚙</span>
+        <span class="tool-kbd">alt e</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="book-viewport" id="bookViewport">
+    <button class="hand-turn-btn left" id="btnPrevSpread" title="Lật sang trang trước">👈</button>
+    <div class="zoom-stage" id="zoomStage">
+      <div class="book-cover-frame" id="bookCoverFrame">
+        <div class="book-spread" id="bookSpread">
+          <section class="notebook-page left-page" id="leftPage" data-side="left">
+            <div class="page-header">
+              <input type="text" class="page-header-input page-title-input" id="leftTitle" placeholder="About ..." />
+              <input type="text" class="page-header-input page-date-input" id="leftDate" placeholder="Date..." />
+            </div>
+            <div class="page-lines" id="leftLines"></div>
+            <svg class="page-svg-layer" id="leftSvg"></svg>
+            <div class="page-images-layer" id="leftImages"></div>
+            <div class="page-tables-layer" id="leftTables"></div>
+            <div class="page-freetext-layer" id="leftFreeTexts"></div>
+            <span class="page-badge-num" id="leftPageNum">1</span>
+          </section>
+
+          <section class="notebook-page right-page" id="rightPage" data-side="right">
+            <div class="page-header">
+              <input type="text" class="page-header-input page-title-input" id="rightTitle" placeholder="About ..." />
+              <input type="text" class="page-header-input page-date-input" id="rightDate" placeholder="Date..." />
+            </div>
+            <div class="page-lines" id="rightLines"></div>
+            <svg class="page-svg-layer" id="rightSvg"></svg>
+            <div class="page-images-layer" id="rightImages"></div>
+            <div class="page-tables-layer" id="rightTables"></div>
+            <div class="page-freetext-layer" id="rightFreeTexts"></div>
+            <span class="page-badge-num" id="rightPageNum">2</span>
+          </section>
+        </div>
+      </div>
+    </div>
+    <button class="hand-turn-btn right" id="btnNextSpread" title="Lật sang trang sau (Trang cuối sẽ tự thêm trang mới)">👉</button>
+  </main>
+
+  <section class="overview-viewport" id="overviewViewport">
+    <div class="overview-grid" id="overviewGrid"></div>
+  </section>
+
+  <aside class="draw-style-panel" id="drawStylePanel">
+    <div>
+      <span class="panel-section-label">Stroke</span>
+      <div class="stroke-swatches" id="strokeSwatches">
+        <div class="stroke-swatch active" data-stroke="#1e1b18" style="background:#1e1b18;"></div>
+        <div class="stroke-swatch" data-stroke="#d93829" style="background:#d93829;"></div>
+        <div class="stroke-swatch" data-stroke="#153b75" style="background:#153b75;"></div>
+        <div class="stroke-swatch" data-stroke="#e2872a" style="background:#e2872a;"></div>
+        <div class="stroke-swatch" data-stroke="#2d7a3e" style="background:#2d7a3e;"></div>
+      </div>
+    </div>
+
+    <div>
+      <span class="panel-section-label">Stroke Width</span>
+      <div class="size-btn-row" id="strokeWidthRow">
+        <button class="size-pill" data-width="1.5">S</button>
+        <button class="size-pill active" data-width="2.5">M</button>
+        <button class="size-pill" data-width="4">L</button>
+        <button class="size-pill" data-width="6">XL</button>
+      </div>
+    </div>
+
+    <div>
+      <span class="panel-section-label">Opacity: <span id="opacityValLabel">100%</span></span>
+      <input type="range" class="opacity-slider" id="strokeOpacitySlider" min="20" max="100" value="100" />
+    </div>
+
+    <div class="panel-footer-btns">
+      <button class="panel-action-btn" id="btnUndoDraw">↶ Undo</button>
+      <button class="panel-action-btn" id="btnClearDraw">Clear</button>
+    </div>
+  </aside>
+
+  <!-- FREEHAND SKETCHPAD MODAL (ALT + V) -->
+  <div class="sketchpad-backdrop" id="sketchpadBackdrop">
+    <div class="sketchpad-modal" role="dialog" aria-modal="true" aria-label="Bảng vẽ tự do">
+      <div class="sketchpad-toolbar">
+        <div class="sketch-group">
+          <button type="button" class="sketch-tool-btn active" data-sketch-tool="pen">✎ Bút vẽ</button>
+          <button type="button" class="sketch-tool-btn" data-sketch-tool="highlighter">🖍 Tô sáng</button>
+          <button type="button" class="sketch-tool-btn" data-sketch-tool="line">╱ Thẳng</button>
+          <button type="button" class="sketch-tool-btn" data-sketch-tool="arrow">↗ Mũi tên</button>
+          <button type="button" class="sketch-tool-btn" data-sketch-tool="rect">□ Vuông</button>
+          <button type="button" class="sketch-tool-btn" data-sketch-tool="oval">○ Tròn</button>
+          <button type="button" class="sketch-tool-btn" data-sketch-tool="eraser">⌫ Tẩy</button>
+        </div>
+
+        <div class="sketch-group">
+          <div class="sketch-color-dot active" data-sketch-color="#153b75" style="background:#153b75;" title="Xanh mực"></div>
+          <div class="sketch-color-dot" data-sketch-color="#1e1b18" style="background:#1e1b18;" title="Đen than"></div>
+          <div class="sketch-color-dot" data-sketch-color="#b83227" style="background:#b83227;" title="Đỏ son"></div>
+          <div class="sketch-color-dot" data-sketch-color="#2d5a27" style="background:#2d5a27;" title="Xanh lá"></div>
+          <div class="sketch-color-dot" data-sketch-color="#d96236" style="background:#d96236;" title="Cam đất"></div>
+          <div class="sketch-color-dot" data-sketch-color="#6b3fa0" style="background:#6b3fa0;" title="Tím"></div>
+
+          <div class="sketch-divider"></div>
+
+          <button type="button" class="sketch-size-btn" data-sketch-size="2">S</button>
+          <button type="button" class="sketch-size-btn active" data-sketch-size="3.5">M</button>
+          <button type="button" class="sketch-size-btn" data-sketch-size="6">L</button>
+          <button type="button" class="sketch-size-btn" data-sketch-size="10">XL</button>
+        </div>
+
+        <div class="sketch-group">
+          <button type="button" class="sketch-tool-btn" id="btnSketchGrid" title="Bật/tắt lưới căn hình">⊞ Lưới</button>
+          <button type="button" class="sketch-tool-btn" id="btnSketchUndo" title="Hoàn tác (Ctrl + Z)">↶ Undo</button>
+          <button type="button" class="sketch-tool-btn" id="btnSketchRedo" title="Làm lại (Ctrl + Y)">↷ Redo</button>
+          <button type="button" class="sketch-tool-btn" id="btnSketchClear" title="Xóa toàn bộ nét vẽ">Xóa hết</button>
+          <div class="sketch-divider"></div>
+          <button type="button" class="sketch-tool-btn" id="btnSketchCancel">Hủy (Esc)</button>
+          <button type="button" class="sketch-import-btn" id="btnSketchImport">✓ Import vào trang</button>
+        </div>
+      </div>
+
+      <div class="sketchpad-canvas-wrap" id="sketchpadCanvasWrap">
+        <canvas id="freehandSketchCanvas"></canvas>
+        <div class="sketchpad-hint">Vẽ tự do bằng chuột hoặc bút cảm ứng • Bấm <b>Import vào trang</b> (hoặc <b>Ctrl + Enter</b>) để chèn thành ảnh nền trong suốt</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-status-bar">
+    <span id="zoomStatusTag">2 Pages</span>
+    <span>|</span>
+    <span id="pageCounterText">1–2 / 2 pages</span>
+  </div>
+
+  <div class="context-menu" id="pageContextMenu">
+    <button class="ctx-item" id="ctxAddLeft">
+      <span>← Thêm 1 trang sang trái</span>
+      <span class="ctx-kbd">Alt + G</span>
+    </button>
+    <button class="ctx-item" id="ctxAddRight">
+      <span>→ Thêm 1 trang sang phải</span>
+      <span class="ctx-kbd">Alt + H</span>
+    </button>
+    <button class="ctx-item danger" id="ctxDeletePage">
+      <span>✕ Xóa trang hiện tại</span>
+      <span class="ctx-kbd">Alt + D</span>
+    </button>
+  </div>
+
+  <div class="guide-backdrop" id="guideBackdrop">
+    <div class="guide-modal">
+      <div class="guide-header">
+        <h2>Hướng Dẫn Sử Dụng & Bảng Phím Tắt</h2>
+        <button class="btn-close-guide" id="btnCloseGuide">✕</button>
+      </div>
+
+      <div class="guide-grid">
+        <div class="guide-card">
+          <h3>Công Cụ Viết & Vẽ</h3>
+          <div class="shortcut-row"><span>Viết chữ (Text)</span><span class="kbd-pill">Ctrl + A</span></div>
+          <div class="shortcut-row"><span>Bảng vẽ tự do → Ảnh</span><span class="kbd-pill">Alt + V</span></div>
+          <div class="shortcut-row"><span>Vẽ đường thẳng (Line)</span><span class="kbd-pill">Ctrl + S</span></div>
+          <div class="shortcut-row"><span>Vẽ hình Oval</span><span class="kbd-pill">Ctrl + O</span></div>
+          <div class="shortcut-row"><span>Vẽ hình chữ nhật</span><span class="kbd-pill">Ctrl + R</span></div>
+          <div class="shortcut-row"><span>Vẽ mũi tên (Arrow)</span><span class="kbd-pill">Ctrl + D</span></div>
+          <div class="shortcut-row"><span>Tẩy nét vẽ / bảng / ảnh</span><span class="kbd-pill">Ctrl + F</span></div>
+          <div class="shortcut-row"><span>Chèn nhanh bảng (Table)</span><span class="kbd-pill">Ctrl + T</span></div>
+          <div class="shortcut-row"><span>Chữ tự do (Text Box)</span><span class="kbd-pill">Ctrl + B</span></div>
+          <div class="shortcut-row"><span>Chấm tròn đầu dòng</span><span class="kbd-pill">Ctrl + P</span></div>
+          <div class="shortcut-row"><span>Dán ảnh / Công thức toán</span><span class="kbd-pill">Ctrl + V</span></div>
+        </div>
+
+        <div class="guide-card">
+          <h3>Điều Hướng & Quản Lý Trang</h3>
+          <div class="shortcut-row"><span>Xem toàn bộ trang (Grid)</span><span class="kbd-pill">Ctrl + G</span></div>
+          <div class="shortcut-row"><span>Phóng to / Thu nhỏ 2 trang</span><span class="kbd-pill">Ctrl + Q</span></div>
+          <div class="shortcut-row"><span>Tìm kiếm nội dung</span><span class="kbd-pill">Alt + T</span></div>
+          <div class="shortcut-row"><span>Mở nhanh số trang</span><span class="kbd-pill">Alt + O</span></div>
+          <div class="shortcut-row"><span>Thêm 1 trang sang trái</span><span class="kbd-pill">Alt + G</span></div>
+          <div class="shortcut-row"><span>Thêm 1 trang sang phải</span><span class="kbd-pill">Alt + H</span></div>
+          <div class="shortcut-row"><span>Xóa trang hiện tại</span><span class="kbd-pill">Alt + D</span></div>
+          <div class="shortcut-row"><span>Mở / Đóng hướng dẫn</span><span class="kbd-pill">Alt + E</span></div>
+          <div class="shortcut-row"><span>Thoát ra thư viện</span><span class="kbd-pill">Esc</span></div>
+        </div>
+      </div>
+
+      <div class="guide-tips">
+        <strong>Mẹo thao tác nhanh:</strong><br/>
+        • <b>Copy công thức toán từ web / ChatGPT / Wikipedia rồi dán (Ctrl + V):</b> Tự động chuyển mã LaTeX/MathML thành ký hiệu toán học chuẩn (α, β, ∑, ∫, √, ≤, ≥, ≠, x², x₁...).<br/>
+        • <b>Bảng vẽ tự do (Alt + V):</b> Vẽ sơ đồ, hình học hoặc chữ viết tay bất kỳ rồi bấm <b>Import vào trang</b> để chèn thành ảnh nền trong suốt.<br/>
+        • <b>Soạn thảo & Định dạng trong dòng:</b> Kéo bôi đen xuyên nhiều dòng để copy/xóa tự do; dùng <b>Ctrl + Shift + B</b> (Đậm), <b>Ctrl + I</b> (Nghiêng), <b>Ctrl + U</b> (Gạch chân), <b>Ctrl + M</b> (Tô sáng) hoặc gõ <code>**đậm**</code> / <code>*nghiêng*</code>.<br/>
+        • <b>Chuột phải lên trang giấy:</b> Mở menu thêm 1 trang sang trái, thêm 1 trang sang phải hoặc xóa trang đang chọn.
+      </div>
+    </div>
+  </div>
+
+  <span class="text-ruler" id="textRuler"></span>
+
+  <script src="storage.js"></script>
+  <script src="canvas-tools.js"></script>
+  <script src="editor.js"></script>
+</body>
+</html>
