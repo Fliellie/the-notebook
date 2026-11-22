@@ -13,6 +13,71 @@ const NotebookStore = {
     return Boolean(window.electronAPI && typeof window.electronAPI.readAllBooks === 'function');
   },
 
+  _createEmptyPage(title = '', date = '') {
+    return {
+      title,
+      date,
+      content: '',
+      shapes: [],
+      images: [],
+      tables: [],
+      freeTexts: []
+    };
+  },
+
+  _pageToPlainLines(page) {
+    if (!page) return [];
+    if (typeof page.content === 'string') {
+      return page.content.split(/\r?\n/);
+    }
+    if (Array.isArray(page.lines)) {
+      return page.lines;
+    }
+    return [];
+  },
+
+  _legacyLinesToMarkdown(page) {
+    if (!page) return '';
+    if (typeof page.content === 'string') return page.content;
+    if (!Array.isArray(page.lines)) return '';
+
+    const types = Array.isArray(page.lineTypes) ? page.lineTypes : [];
+    const out = [];
+    let inCode = false;
+
+    for (let i = 0; i < page.lines.length; i++) {
+      const raw = page.lines[i] || '';
+      const type = types[i] || 'normal';
+
+      if (type === 'code') {
+        if (!inCode) {
+          out.push('```');
+          inCode = true;
+        }
+        out.push(raw);
+      } else {
+        if (inCode) {
+          out.push('```');
+          inCode = false;
+        }
+        if (type === 'heading' && raw.trim() !== '') {
+          out.push(`# ${raw.trim()}`);
+        } else {
+          out.push(raw);
+        }
+      }
+    }
+
+    if (inCode) {
+      out.push('```');
+    }
+
+    while (out.length > 0 && out[out.length - 1].trim() === '') {
+      out.pop();
+    }
+    return out.join('\n');
+  },
+
   _extractSummaryFields(bookObj) {
     const pages = Array.isArray(bookObj.pages) ? bookObj.pages : [];
     let writtenCount = 0;
@@ -20,12 +85,13 @@ const NotebookStore = {
 
     if (pages.length > 0) {
       for (const p of pages) {
-        if (!Array.isArray(p?.lines)) continue;
-        for (const line of p.lines) {
-          if (line && line.trim() !== '') {
+        const lines = this._pageToPlainLines(p);
+        for (const line of lines) {
+          const cleaned = (line || '').replace(/^#{1,6}\s+/, '').replace(/^```.*$/, '').trim();
+          if (cleaned !== '') {
             writtenCount++;
             if (previewLines.length < 5) {
-              previewLines.push(line);
+              previewLines.push(cleaned);
             }
           }
         }
@@ -138,10 +204,21 @@ const NotebookStore = {
         legacyBooks.forEach(b => {
           if (!b || !b.id || existingIds.has(b.id)) return;
           const pages = Array.isArray(b.pages) && b.pages.length >= 2
-            ? b.pages
+            ? b.pages.map(p => ({
+                title: p.title || '',
+                date: p.date || '',
+                content: this._legacyLinesToMarkdown(p),
+                shapes: Array.isArray(p.shapes) ? p.shapes : [],
+                images: Array.isArray(p.images) ? p.images : [],
+                tables: Array.isArray(p.tables) ? p.tables : [],
+                freeTexts: Array.isArray(p.freeTexts) ? p.freeTexts : []
+              }))
             : [
-                { title: b.title || '', date: b.date || '', lines: b.lines || Array(23).fill(''), shapes: [], tables: [] },
-                { title: '', date: '', lines: Array(23).fill(''), shapes: [], tables: [] }
+                {
+                  ...this._createEmptyPage(b.title || '', b.date || ''),
+                  content: Array.isArray(b.lines) ? b.lines.join('\n').trimEnd() : ''
+                },
+                this._createEmptyPage('', '')
               ];
           const summary = this._extractSummaryFields({ ...b, pages });
           indexList.push({
@@ -329,7 +406,9 @@ const NotebookStore = {
       const found = this._readAllDesktop().find(b => b.id === noteId);
       if (!found) return null;
       if (!Array.isArray(found.lines) && Array.isArray(found.pages)) {
-        const allLines = found.pages.flatMap(p => (p.lines || []).filter(l => l && l.trim() !== ''));
+        const allLines = found.pages.flatMap(p =>
+          this._pageToPlainLines(p).filter(l => l && l.trim() !== '')
+        );
         return { ...found, lines: allLines };
       }
       return found;
@@ -340,13 +419,15 @@ const NotebookStore = {
     if (!meta) return null;
 
     const pages = this._readWebBookPages(noteId, meta.pageCount || 2);
-    const allLines = pages.flatMap(p => (p.lines || []).filter(l => l && l.trim() !== ''));
+    const allLines = pages.flatMap(p =>
+      this._pageToPlainLines(p).filter(l => l && l.trim() !== '')
+    );
 
     return {
       ...meta,
       pages: pages.length >= 2 ? pages : [
-        { title: meta.title || '', date: meta.date || '', lines: Array(23).fill(''), shapes: [], tables: [] },
-        { title: '', date: '', lines: Array(23).fill(''), shapes: [], tables: [] }
+        this._createEmptyPage(meta.title || '', meta.date || ''),
+        this._createEmptyPage('', '')
       ],
       lines: allLines
     };
@@ -359,8 +440,8 @@ const NotebookStore = {
     const defaultDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const existing = this.listNotes();
     const initialPages = [
-      { title, date: defaultDate, lines: Array(23).fill(''), shapes: [], tables: [] },
-      { title: '', date: '', lines: Array(23).fill(''), shapes: [], tables: [] }
+      this._createEmptyPage(title, defaultDate),
+      this._createEmptyPage('', '')
     ];
 
     const newBook = {
@@ -454,7 +535,7 @@ const NotebookStore = {
           pages: nextPages,
           updated_at: nowIso
         };
-        delete bookToSave.lines; // Tránh trùng lặp toàn bộ văn bản ở cấp gốc
+        delete bookToSave.lines;
         books[idx] = bookToSave;
         window.electronAPI.saveBook(bookToSave);
       } else {
@@ -529,7 +610,7 @@ const NotebookStore = {
     const author = full.author ? `By ${full.author}` : '';
     const date = full.date || '';
     const lines = Array.isArray(full.pages)
-      ? full.pages.flatMap(p => p.lines || [])
+      ? full.pages.flatMap(p => this._pageToPlainLines(p))
       : [...(full.lines || [])];
 
     while (lines.length && lines[lines.length - 1].trim() === '') {
